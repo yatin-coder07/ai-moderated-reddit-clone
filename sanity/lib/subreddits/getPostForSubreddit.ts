@@ -4,26 +4,26 @@ import { sanityFetch } from "../live";
 export async function getPostsForSubreddit(slug: string) {
   if (!slug) throw new Error("getPostsForSubreddit: slug is required");
 
-  const getPostsForSubredditQuery = defineQuery(`
-    *[_type == "post" && subreddit->slug.current == $slug] {
+  const query = defineQuery(`
+    *[_type == "post" && subreddit->slug.current == $slug]{
       ...,
       "slug": slug.current,
       "author": author->,
       "subreddit": subreddit->,
       "category": category->,
-      "upvotes": count(*[_type == "vote" && post._ref == ^._id && voteType == "upvote"]),
-      "downvotes": count(*[_type == "vote" && post._ref == ^._id && voteType == "downvote"]),
-      "netScore": count(*[_type == "vote" && post._ref == ^._id && voteType == "upvote"]) 
-                - count(*[_type == "vote" && post._ref == ^._id && voteType == "downvote"]),
-      "commentCount": count(*[_type == "comment" && post._ref == ^._id])
-    } | order(publishedAt desc)
+      "upvotes": count(*[_type == "vote" && voteType == "upvote" && references(^._id)]),
+      "downvotes": count(*[_type == "vote" && voteType == "downvote" && references(^._id)]),
+      "netScore": count(*[_type == "vote" && voteType == "upvote" && references(^._id)])
+               - count(*[_type == "vote" && voteType == "downvote" && references(^._id)]),
+      "commentCount": count(*[_type == "comment" && references(^._id)])
+    } | order(_createdAt desc)
   `);
 
-  const result = await sanityFetch({
-    query: getPostsForSubredditQuery,
-    params: { slug },
+  const { data } = await sanityFetch({
+    query,
+    params: { slug }, // e.g. "reactjs"
+    // perspective: 'published', // uncomment if needed
   });
 
-  // With defineLive, sanityFetch returns data directly (not { data })
-  return result;
+  return data; // <-- array of posts
 }

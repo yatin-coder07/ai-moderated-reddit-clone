@@ -6,6 +6,7 @@ import { getPostsForSubreddit } from "@/sanity/lib/subreddits/getPostForSubreddi
 
 
 
+
 import { getSubredditBySlug } from "@/sanity/lib/subreddits/getSubredditBySlug";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
@@ -22,13 +23,50 @@ async function CommunityPage({
     if (!community) return null;
 
     const user = await currentUser();
-    const post = await getPostsForSubreddit(slug)
+    const posts = await getPostsForSubreddit(slug)
 
     return <>
   <section>
+       {/*Community banner */}
+       <div className="mx-auto max-w-7xl px-4 py-6 ">
+        <div className="flex items-center gap-4">
+            {community?.image && community.image.asset?._ref &&(
+                <div className="relative h-16 w-16 overflow-hidden rounded-full border">
+                    <Image
+                    src={urlFor(community.image).url()}
+                    alt={community.title}
+                    fill
+                    className="object-cover"
+                    priority/>
+                </div>
+            )}
+            <div className="">
+                <h1 className="text-2xl font-bold">{community?.title}</h1>
+                {community?.description &&(
+                    <p className="text-sm text-gray-600">{community.description}</p>
+                )}
+            </div>
+        </div>
        
+       </div>
   </section>
  
+ <section className="my-8">
+    <div className="mx-auto px-4 max-w-7xl" >
+        <div className="flex flex-col gap-4">
+        {posts.length > 0 ? (
+  posts.map((post) => (
+    <Posts key={post.slug} post={post} userId={user?.id || null} />
+  ))
+) : (
+  <div className="bg-white rounded-md p-6 text-center">
+    <p className="text-gray-500">No posts in this community yet.</p>
+  </div>
+)}
+
+        </div>
+    </div>
+ </section>
     </>;
 }
 

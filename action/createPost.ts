@@ -4,12 +4,7 @@ import { Post } from "@/sanity.types";
 import { adminClient } from "@/sanity/lib/adminClient";
 import { getSubredditBySlug } from "@/sanity/lib/subreddits/getSubredditBySlug";
 import { getUser } from "@/sanity/lib/user/getUser";
-import { auth } from "@clerk/nextjs/server";
-import { createClerkToolkit} from "@clerk/agent-toolkit/ai-sdk"
-import {openai} from "@ai-sdk/openai"
-import { CoreMessage, generateText } from "ai";
-import { censorPost,reportUser } from "@/tools/tools";
-import { systemPrompt } from "@/prompt";
+
 
 export type PostImageData = {
   base64: string;
@@ -140,47 +135,7 @@ export async function createPost({
   const post = await adminClient.create(postDoc as Post);
   console.log(`Post created successfully with ID: ${post._id}`);
 
-  // Call the content moderation API
-  // --- MOD STEP ---
-  // [000] Implement content moderation API call
-  console.log("Starting content moderation process");
-  const messages: CoreMessage[] = [
-      {
-          role: "user",
-          content: `I posted this post -> Post ID: ${post._id} \nTitle: ${title} \nBody: ${body}`,
-      },
-  ];
-  
-  console.log("Prepared messages for moderation:", JSON.stringify(messages));
-  
-  try {
-      console.log("Authenticating user for moderation");
-      const authContext = await auth.protect(); // import from "@clerk/nextjs/server"
-      console.log("User authenticated for moderation:", authContext.userId);
-  
-      console.log("Initializing Clerk toolkit");
-      const toolkit = await createClerkToolkit({ authContext });
 
-      const result = await generateText({
-        model: openai("gpt-4.1-mini"),
-        messages: messages as CoreMessage[],
-        // Conditionally inject session claims if we have auth context
-        system: toolkit.injectSessionClaims(systemPrompt),
-        tools: {
-            ...toolkit.users(),
-            censorPost,
-            reportUser,
-        },
-    });
-
-    console.log("Ai moderation completed ," , result)
-  } catch (error) {
-      console.error("Error in content moderation:", error);
-      // Don't fail the whole post creation if moderation fails
-      console.log("Continuing without content moderation");
-  }
-
-  // --- END MOD STEP ---
 
   console.log("Post creation process completed succcessful" , post)
 
