@@ -2,8 +2,8 @@
 import React from 'react'
 import Image from 'next/image'
 import { Button } from './ui/button'
-import { useUser } from '@clerk/nextjs'
-import { SignedIn,  SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react'
+import { SignedIn, SignInButton, SignUpButton, UserButton, useUser } from '@clerk/nextjs'
+
 import fullLogo from "@/images/fullLogo.png"
 import logo from "@/images/logo.png"
 import {  ChevronLeftIcon, MenuIcon } from 'lucide-react'
