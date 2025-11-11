@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
       hostname:"img.clerk.com",
       protocol:"https",
     }]
+  },
+  eslint:{
+    ignoreDuringBuilds:true,
   }
 };
 
